@@ -50,12 +50,14 @@ public class PlayerControl : MonoBehaviour
     {
         if (Input.GetMouseButton(0))
         {
+            _rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            _rb.transform.position = _cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10));
             //_rb.constraints = RigidbodyConstraints2D.FreezePosition;
-            _rb.AddForce((_cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y,10))-transform.position).normalized*70);
+            //_rb.AddForce((_cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y,10))-transform.position).normalized*300);
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            //_rb.constraints = RigidbodyConstraints2D.None;
+            _rb.constraints = RigidbodyConstraints2D.None;
         }
     }
 }

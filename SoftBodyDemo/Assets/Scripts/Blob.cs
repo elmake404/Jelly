@@ -16,11 +16,14 @@ public class Blob : MonoBehaviour
     private Rigidbody2D _rbMain;
 
     private List<GameObject> _referencePoints;
-    private Vector3[] _vertices;
-    private Vector2[] _uv;
+    private List<Vector3> _vertices;
+    private List<Vector2> _uv;
     private Vector3[,] _offsets;
+    //private List<int> _triangles;
 
-    private int _vertexCount;
+    [SerializeField]
+    private bool _isNoTop, _isNoBottom, _isNoRight, _isNoLeft;
+    //private int _vertexCount;
     private int[] _triangles;
     private float[,] _weights;
 
@@ -40,19 +43,22 @@ public class Blob : MonoBehaviour
         {
             Debug.LogError("lack of physical material");
         }
+
         _referencePoints = new List<GameObject>();
 
         float positionColliderX = transform.position.x - (transform.localScale.x / 2 - _sizeCollider / 2);
         float positionColliderY = transform.position.y + (transform.localScale.y / 2 - _sizeCollider / 2);
         Vector2 positionCollider = new Vector2(positionColliderX, positionColliderY);
-        bool EmergencyExit = false;
-        bool attach = false;
+        bool isEmergencyExit = false;
+        bool isAttach = true;
 
         int i = 0;
         int actionNumber = 0;
 
         while (true)
         {
+            bool isCut = false;
+
             _referencePoints.Add(new GameObject());
             _referencePoints[i].tag = gameObject.tag;
             _referencePoints[i].transform.parent = transform;
@@ -60,37 +66,53 @@ public class Blob : MonoBehaviour
             switch (actionNumber)
             {
                 case 0:
-                    if (positionCollider.x > transform.position.x + (transform.localScale.x / 2 - _sizeCollider / 2))
+                    if (positionCollider.x > transform.position.x + (transform.localScale.x / 2 - _sizeCollider / 2) || _isNoTop)
                     {
                         positionCollider.x = transform.position.x + (transform.localScale.x / 2 - _sizeCollider / 2);
                         actionNumber += 1;
-                        attach = true;
+                        isAttach = true;
+                        if (_isNoTop)
+                        {
+                            isCut = true;
+                        }
                     }
                     break;
 
                 case 1:
-                    if (positionCollider.y < transform.position.y - (transform.localScale.y / 2 - _sizeCollider / 2))
+                    if (positionCollider.y < transform.position.y - (transform.localScale.y / 2 - _sizeCollider / 2) || _isNoLeft)
                     {
                         positionCollider.y = transform.position.y - (transform.localScale.y / 2 - _sizeCollider / 2);
                         actionNumber += 1;
-                        attach = true;
+                        isAttach = true;
+                        if (_isNoLeft)
+                        {
+                            isCut = true;
+                        }
                     }
                     break;
 
                 case 2:
-                    if (positionCollider.x < transform.position.x - (transform.localScale.x / 2 - _sizeCollider / 2))
+                    if (positionCollider.x < transform.position.x - (transform.localScale.x / 2 - _sizeCollider / 2) || _isNoBottom)
                     {
                         positionCollider.x = transform.position.x - (transform.localScale.x / 2 - _sizeCollider / 2);
                         actionNumber += 1;
-                        attach = true;
+                        isAttach = true;
+                        if (_isNoBottom)
+                        {
+                            isCut = true;
+                        }
                     }
                     break;
 
                 case 3:
-                    if (positionCollider.y > transform.position.y + (transform.localScale.y / 2 - _sizeCollider / 2))
+                    if (positionCollider.y > transform.position.y + (transform.localScale.y / 2 - _sizeCollider / 2) || _isNoRight)
                     {
                         positionCollider.y = transform.position.y + (transform.localScale.y / 2 - _sizeCollider / 2);
-                        EmergencyExit = true;
+                        isEmergencyExit = true;
+                        if (_isNoRight)
+                        {
+                            isCut = true;
+                        }
                     }
                     break;
             }
@@ -122,23 +144,25 @@ public class Blob : MonoBehaviour
 
             if (i > 0)
             {
-                AttachWithSpringJoint(_referencePoints[i],
-                        _referencePoints[i - 1], _springFrequency * 2);
-            }
-            else
-            {
-                AttachWithSpringJointToTheFastener(_referencePoints[0],  _springFrequency * 2);
+                if (!isCut)
+                {
+                    AttachWithSpringJoint(_referencePoints[i],
+                            _referencePoints[i - 1], _springFrequency * 2);
+                }
             }
 
-            if (attach)
+            if (isAttach)
             {
                 AttachWithSpringJointToTheFastener(_referencePoints[i], _springFrequency * 2);
-                attach = false;
+                isAttach = false;
             }
-            if (EmergencyExit)
+            if (isEmergencyExit)
             {
-                AttachWithSpringJoint(_referencePoints[0],
-                        _referencePoints[_referencePoints.Count - 1], _springFrequency * 2);
+                if (!_isNoTop)
+                {
+                    AttachWithSpringJoint(_referencePoints[0],
+                    _referencePoints[_referencePoints.Count - 1], _springFrequency * 2);
+                }
 
                 break;
             }
@@ -223,12 +247,12 @@ public class Blob : MonoBehaviour
     }
     private void CreateMesh()
     {
-        _vertexCount = (_width + 1) * (_height + 1);
+        //_vertexCount = (_width + 1) * (_height + 1);
 
         int trianglesCount = _width * _height * 6;
-        _vertices = new Vector3[_vertexCount];
+        _vertices = new List<Vector3>();
         _triangles = new int[trianglesCount];
-        _uv = new Vector2[_vertexCount];
+        _uv = new List<Vector2>();
         int t;
 
         for (int y = 0; y <= _height; y++)
@@ -236,10 +260,10 @@ public class Blob : MonoBehaviour
             for (int x = 0; x <= _width; x++)
             {
                 int v = (_width + 1) * y + x;
-                _vertices[v] = new Vector3(x / (float)_width - 0.5f,
+                Vector3 PosVertex = new Vector3(x / (float)_width - 0.5f,
                         y / (float)_height - 0.5f, 0);
-
-                _uv[v] = new Vector2(x / (float)_width, y / (float)_height);
+                _vertices.Add(PosVertex);
+                _uv.Add(new Vector2(x / (float)_width, y / (float)_height));
 
                 if (x < _width && y < _height)
                 {
@@ -251,20 +275,22 @@ public class Blob : MonoBehaviour
                     _triangles[++t] = v + _width + 2;
                     _triangles[++t] = v + 1;
                 }
+
             }
+
         }
         Mesh mesh = _meshMain.mesh;
 
-        mesh.vertices = _vertices;
-        mesh.uv = _uv;
+        mesh.vertices = _vertices.ToArray();
+        mesh.uv = _uv.ToArray();
         mesh.triangles = _triangles;
     }
     private void MapVerticesToReferencePoints()
     {
-        _offsets = new Vector3[_vertexCount, _referencePoints.Count];
-        _weights = new float[_vertexCount, _referencePoints.Count];
+        _offsets = new Vector3[_vertices.Count, _referencePoints.Count];
+        _weights = new float[_vertices.Count, _referencePoints.Count];
 
-        for (int i = 0; i < _vertexCount; i++)
+        for (int i = 0; i < _vertices.Count; i++)
         {
             float totalWeight = 0;
 
@@ -283,9 +309,9 @@ public class Blob : MonoBehaviour
     }
     private void UpdateVertexPositions()
     {
-        Vector3[] vertices = new Vector3[_vertexCount];
+        Vector3[] vertices = new Vector3[_vertices.Count];
 
-        for (int i = 0; i < _vertexCount; i++)
+        for (int i = 0; i < _vertices.Count; i++)
         {
             vertices[i] = Vector3.zero;
 

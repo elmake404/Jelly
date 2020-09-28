@@ -44,9 +44,10 @@ public class BlobCircle : MonoBehaviour
                 rotation * offsetFromCenter;
 
             Rigidbody2D body = _referencePoints[i].AddComponent<Rigidbody2D>();
-            body.fixedAngle = true;
+            body.freezeRotation = true;
             body.interpolation = rigidbody.interpolation;
             body.collisionDetectionMode = rigidbody.collisionDetectionMode;
+            body.mass =0.5f;
 
             CircleCollider2D collider =
                 _referencePoints[i].AddComponent<CircleCollider2D>();
@@ -69,8 +70,7 @@ public class BlobCircle : MonoBehaviour
         IgnoreCollisionsBetweenReferencePoints();
     }
 
-    void AttachWithSpringJoint(GameObject referencePoint,
-            GameObject connected)
+    void AttachWithSpringJoint(GameObject referencePoint, GameObject connected)
     {
         SpringJoint2D springJoint =
             referencePoint.AddComponent<SpringJoint2D>();
