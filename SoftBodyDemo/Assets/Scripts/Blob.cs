@@ -5,9 +5,7 @@ using System.Collections.Generic;
 public class Blob : MonoBehaviour
 {
     [SerializeField]
-    private int _width = 5, _height = 5/*, _referencePointsCount = 12*/;
-    [SerializeField]
-    private float _sizeCollider, _step, _mappingDetail = 10, _springDampingRatio = 0, _springFrequency = 2;
+    private Transform[] _anchor;
     [SerializeField]
     private PhysicsMaterial2D _surfaceMaterial;
     [SerializeField]
@@ -19,24 +17,78 @@ public class Blob : MonoBehaviour
     private List<Vector3> _vertices;
     private List<Vector2> _uv;
     private Vector3[,] _offsets;
-    //private List<int> _triangles;
 
     [SerializeField]
+    private int _width = 5, _height = 5;
+    [SerializeField]
+    private float _sizeCollider, _step, _mappingDetail = 10, _springDampingRatio = 0, _springFrequency = 2;
+    [SerializeField]
     private bool _isNoTop, _isNoBottom, _isNoRight, _isNoLeft;
-    //private int _vertexCount;
     private int[] _triangles;
     private float[,] _weights;
 
-    private void Start()
+    private void Awake()
     {
         CreateReferencePoints();
         CreateMesh();
         MapVerticesToReferencePoints();
     }
+    private void Start()
+    {
+        if(_anchor.Length>0)
+        {
+            for (int i = 0; i < _anchor.Length; i++)
+            {
+                Coupling(_anchor[i]);
+            }
+        }
+    }
+
     private void Update()
     {
         UpdateVertexPositions();
     }
+    private void Coupling(Transform origin)
+    {
+        List<RaycastHit2D> hits2D = new List<RaycastHit2D>();
+        ContactFilter2D contactFilter2D = new ContactFilter2D();
+
+        Physics2D.CircleCast(origin.position, _sizeCollider/2 , Vector2.zero, contactFilter2D, hits2D);
+        GameObject contactPoint = null;
+        GameObject MainPoint = null;
+        float magnitudeContactPoint = float.PositiveInfinity;
+        float magnitudeMainPoint = float.PositiveInfinity;
+        for (int i = 0; i < hits2D.Count; i++)
+        {
+            Transform refernsPointOther = hits2D[i].collider.gameObject.transform;
+            if (refernsPointOther.gameObject.layer == 8)
+            {
+                if (refernsPointOther.parent != transform)
+                {
+                    if (magnitudeContactPoint > (refernsPointOther.position - origin.position).magnitude)
+                    {
+                        magnitudeContactPoint = (refernsPointOther.position - origin.position).magnitude;
+                        contactPoint = refernsPointOther.gameObject;
+                    }
+                }
+                else
+                {
+                    if (magnitudeMainPoint > (refernsPointOther.position - origin.position).magnitude)
+                    {
+                        magnitudeMainPoint = (refernsPointOther.position - origin.position).magnitude;
+                        MainPoint = refernsPointOther.gameObject;
+                    }
+                }
+            }
+        }
+        if (MainPoint!=null&&contactPoint!=null)
+        {
+            //Debug.Log(MainPoint.GetComponents<SpringJoint2D>().Length);
+            AttachWithFixedJoint(MainPoint, contactPoint, _springFrequency * 100);
+        }
+
+    }
+
     private void CreateReferencePoints()
     {
         if (_surfaceMaterial == null)
@@ -62,6 +114,7 @@ public class Blob : MonoBehaviour
             _referencePoints.Add(new GameObject());
             _referencePoints[i].tag = gameObject.tag;
             _referencePoints[i].transform.parent = transform;
+            _referencePoints[i].layer = 8;
 
             switch (actionNumber)
             {
@@ -169,8 +222,6 @@ public class Blob : MonoBehaviour
 
             i++;
         }
-
-        IgnoreCollisionsBetweenReferencePoints();
     }
     private void AddComponents(GameObject referencePoints)
     {
@@ -194,6 +245,14 @@ public class Blob : MonoBehaviour
         springJoint.dampingRatio = _springDampingRatio;
         springJoint.frequency = springFrequency;
     }
+    private void AttachWithFixedJoint(GameObject referencePoint, GameObject connected, float springFrequency)
+    {
+        FixedJoint2D springJoint = referencePoint.AddComponent<FixedJoint2D>();
+        springJoint.connectedBody = connected.GetComponent<Rigidbody2D>();
+        springJoint.connectedAnchor = LocalPosition(referencePoint) -
+            LocalPosition(connected);
+    }
+
     private void AttachWithSpringJointToTheFastener(GameObject referencePoint, float springFrequency)
     {
         bool topMount = transform.position.y < referencePoint.transform.position.y;
