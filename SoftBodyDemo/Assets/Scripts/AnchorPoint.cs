@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AnchorPoint : MonoBehaviour
 {
-    public Blob[] Belongs ;
+    public Blob Belongs, BelongsAngle;
 
     [SerializeField]
     private float _sizeCollider;

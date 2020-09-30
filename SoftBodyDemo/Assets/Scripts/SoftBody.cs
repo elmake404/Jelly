@@ -41,13 +41,14 @@ public class SoftBody : MonoBehaviour
 
             referensPoint.transform.SetParent(parentReferens);
 
-            for (int t = 0; t < _anchorPoints[i].Belongs.Length; t++)
-            {
-                _anchorPoints[i].Belongs[t]._referencePoints.Add(referensPoint);
-            }
+            _anchorPoints[i].Belongs._referencePoints.Add(referensPoint);
 
             if ((_positionPoint - _anchorPoints[i].transform.position).magnitude < 0.01f)
             {
+                if (_anchorPoints[i].tag == "Angle")
+                {
+                    _anchorPoints[i].BelongsAngle._referencePoints.Add(referensPoint);
+                }
                 if (i < _anchorPoints.Length - 1)
                 {
                     //parentReferens = transform;
