@@ -6,6 +6,8 @@ public class PlayerControl : MonoBehaviour
 {
     [SerializeField]
     private Rigidbody2D _rb;
+    [SerializeField]
+    private CircleCollider2D collider;
     private Vector3 _startMousePos, _currentMousePos, _startPositionPlayer, _velosity;
     private Camera _cam;
 
@@ -50,14 +52,17 @@ public class PlayerControl : MonoBehaviour
     {
         if (Input.GetMouseButton(0))
         {
-            _rb.constraints = RigidbodyConstraints2D.FreezeAll;
-            _rb.transform.position = _cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10));
+            //_rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            collider.isTrigger = false;
+            Vector3 PosFinger = _cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10));
+            _rb.transform.position = PosFinger /*+ new Vector3(0,collider.radius,0)*/;
             //_rb.constraints = RigidbodyConstraints2D.FreezePosition;
             //_rb.AddForce((_cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y,10))-transform.position).normalized*300);
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            _rb.constraints = RigidbodyConstraints2D.None;
+            collider.isTrigger = true;
+            //_rb.constraints = RigidbodyConstraints2D.None;
         }
     }
 }
