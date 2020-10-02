@@ -4,18 +4,8 @@ using UnityEngine;
 
 public class PointSpring : MonoBehaviour
 {
-    public CircleCollider2D _circleCollider;
-    public Rigidbody2D _rigidbodyMain;
-    public SpringJoint2D  _springJointNeighbour;
+    public CircleCollider2D CircleCollider;
+    public Rigidbody2D RigidbodyMain;
+    public SpringJoint2D SpringJointNeighbour;
 
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

@@ -7,8 +7,7 @@ public class PlayerControl : MonoBehaviour
     [SerializeField]
     private Rigidbody2D _rb;
     [SerializeField]
-    private CircleCollider2D collider;
-    private Vector3 _startMousePos, _currentMousePos, _startPositionPlayer, _velosity;
+    private CircleCollider2D colliderCircle;
     private Camera _cam;
 
     [SerializeField]
@@ -19,50 +18,17 @@ public class PlayerControl : MonoBehaviour
         _cam = Camera.main;
     }
 
-    //void Update()
-    //{
-    //    if (Input.GetMouseButtonDown(0))
-    //    {
-    //        _startMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-    //        _rb.constraints = RigidbodyConstraints2D.FreezePosition;
-    //        _startPositionPlayer = transform.position;
-    //    }
-    //    else if (Input.GetMouseButton(0))
-    //    {
-    //        if (_startMousePos == Vector3.zero)
-    //        {
-    //            _startMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-    //            _rb.constraints = RigidbodyConstraints2D.FreezePosition;
-    //            _startPositionPlayer = transform.position;
-    //        }
-    //        _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-    //        if (true)
-    //        {
-
-    //        }
-    //        float Y = _startPositionPlayer.y + ((_currentMousePos - _startMousePos).y) * 2f;
-    //        transform.position = new Vector3(transform.position.x, Y);
-    //    }
-    //    else if (Input.GetMouseButtonUp(0))
-    //    {
-    //        _rb.constraints = RigidbodyConstraints2D.None;
-    //    }
-    //}  
     void Update()
     {
         if (Input.GetMouseButton(0))
         {
-            //_rb.constraints = RigidbodyConstraints2D.FreezeAll;
-            collider.isTrigger = false;
+            colliderCircle.isTrigger = false;
             Vector3 PosFinger = _cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10));
-            _rb.transform.position = PosFinger /*+ new Vector3(0,collider.radius,0)*/;
-            //_rb.constraints = RigidbodyConstraints2D.FreezePosition;
-            //_rb.AddForce((_cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y,10))-transform.position).normalized*300);
+            _rb.transform.position = PosFinger;
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            collider.isTrigger = true;
-            //_rb.constraints = RigidbodyConstraints2D.None;
+            colliderCircle.isTrigger = true;
         }
     }
 }

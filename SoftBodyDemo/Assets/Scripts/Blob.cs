@@ -4,10 +4,6 @@ using System.Collections.Generic;
 
 public class Blob : MonoBehaviour
 {
-    //[SerializeField]
-    //private Transform[] _anchor;
-    //[SerializeField]
-    //private PhysicsMaterial2D _surfaceMaterial;
     [SerializeField]
     private MeshFilter _meshMain;
     [SerializeField]
@@ -16,8 +12,8 @@ public class Blob : MonoBehaviour
     private List<Vector2> _uv;
     private Vector3[,] _offsets;
 
+    //[HideInInspector]
     public List<PointSpring> _referencePoints;
-
 
     [SerializeField]
     private int _width = 5, _height = 5;
@@ -34,6 +30,7 @@ public class Blob : MonoBehaviour
     {
         for (int i = 0; i < _referencePoints.Count; i++)
         {
+            _referencePoints[i].transform.SetParent(transform);
             AttachWithSpringJoint(_referencePoints[i], _rbMain, _springFrequency);
         }
     }
