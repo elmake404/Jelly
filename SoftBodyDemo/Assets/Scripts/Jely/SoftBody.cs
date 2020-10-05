@@ -45,7 +45,9 @@ public class SoftBody : MonoBehaviour
             {
                 AttachWithSpringJoint(_listPointSprings[_listPointSprings.Count - 1], _listPointSprings[_listPointSprings.Count - 2], _springFrequency);
             }
+
             referensPoint.transform.SetParent(parentReferens);
+
             if (_anchorPoints[i].tag == "Angle" && _anchorPoints[i].gameObject.layer==9)
             {
                 _anchorPoints[i].Belongs._referencePoints.Add(referensPoint);

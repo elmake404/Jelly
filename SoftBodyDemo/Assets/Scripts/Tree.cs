@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Tree : MonoBehaviour
 {
+    private Transform _refernsPoint;
+    private Vector3 _offSet;
     private void Start()
     {
         List<RaycastHit2D> hits2D = new List<RaycastHit2D>();
