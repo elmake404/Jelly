@@ -8,6 +8,8 @@ public class PlayerControl : MonoBehaviour
     private Transform _cargo;
     [SerializeField]
     private CircleCollider2D colliderCircle;
+    [SerializeField]
+    private LayerMask _layerMask;
     private Vector3 _startMousePos, _currentMousePos, _startPositionPlayer, _velosity;
     private Camera _cam;
 
@@ -37,8 +39,7 @@ public class PlayerControl : MonoBehaviour
                 float Y = _startPositionPlayer.y + ((_currentMousePos - _startMousePos).y) * 10f;
                 float X = _startPositionPlayer.x + ((_currentMousePos - _startMousePos).x) * 10f;
                 Vector2 cargoPos = new Vector3(X, Y);
-                //Vector2 MaxPos = (_currentMousePos - _startMousePos).normalized * colliderCircle.radius + transform.position;
-                if ((cargoPos-(Vector2)transform.position).magnitude> _maxTension)
+                if ((cargoPos - (Vector2)transform.position).magnitude > _maxTension)
                 {
                     cargoPos = (_currentMousePos - _startMousePos).normalized * _maxTension + transform.position;
                 }
@@ -62,41 +63,49 @@ public class PlayerControl : MonoBehaviour
 
     private void PositionCalculation(Wall wall)
     {
-        Vector2 extremePosition = wall.GetPerimeter(transform.localPosition);
-        Vector2 PosMain = (wall.transform.localPosition - transform.localPosition).normalized * colliderCircle.radius;
-        Vector2 NewPos = transform.localPosition;
-        if (transform.localPosition.x < wall.transform.localPosition.x)
-        {
+        Vector2 direction = Vector2.zero;
+        List<RaycastHit2D> hit2D = new List<RaycastHit2D>();
+        ContactFilter2D contactFilter = new ContactFilter2D();
+        float SizeX;
+        float SizeY;
+        wall.GetSize(out SizeX, out SizeY);
 
-            if (PosMain.x < extremePosition.x)
+        if (transform.position.x <= wall.transform.position.x + SizeX
+            && transform.position.x >= wall.transform.position.x - SizeX)
+        {
+            if (transform.position.y > wall.transform.position.y)
             {
-                NewPos.x = extremePosition.x- colliderCircle.radius;
+                direction = Vector2.down;
+            }
+            else
+            {
+                direction = Vector2.up;
             }
         }
-        else
+        else if (transform.position.y <= wall.transform.position.y + SizeY
+           && transform.position.y >= wall.transform.position.y - SizeY)
         {
-            if (PosMain.x > extremePosition.x)
+            if (transform.position.x > wall.transform.position.x)
             {
-                NewPos.x = extremePosition.x + colliderCircle.radius;
+                direction = Vector2.left;
+            }
+            else
+            {
+                direction = Vector2.right;
             }
         }
 
-        if (transform.localPosition.y < wall.transform.localPosition.y)
+        Physics2D.Raycast(transform.position, direction, contactFilter, hit2D);
+
+        for (int i = 0; i < hit2D.Count; i++)
         {
-            if (PosMain.y < extremePosition.y)
+            if (hit2D[i].collider.gameObject.layer == 11)
             {
-                NewPos.y = extremePosition.y - colliderCircle.radius;
+                transform.position = hit2D[i].point - direction * colliderCircle.radius;
+                break;
             }
         }
-        else
-        {
-            if (PosMain.y > extremePosition.y)
-            {
-                NewPos.y = extremePosition.y + colliderCircle.radius;
-            }
-        }
-        transform.localPosition = NewPos;
-        _startPositionPlayer = transform.position;
         colliderCircle.isTrigger = false;
+        _startPositionPlayer = transform.position;
     }
 }
