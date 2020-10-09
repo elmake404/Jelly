@@ -1,19 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
     #region Static
-    public bool IsMaximumTensionDown,IsMaximumTensionUp,IsMaximumTensionReght,IsMaximumTensionLeft;
+    public static bool IsGameOver;
     #endregion
-    void Start()
+    private void Awake()
     {
-        
+        IsGameOver = false;
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        
+        if (IsGameOver)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
+    
 }

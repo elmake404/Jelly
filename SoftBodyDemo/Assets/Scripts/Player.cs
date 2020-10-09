@@ -11,7 +11,10 @@ public class Player : MonoBehaviour
 
     [SerializeField]
     private float _jampForce, _forceGround, _forceFly;
-    private bool _isJamp,_isFly;
+    [SerializeField]
+    private float _upperSpeedLimit, _lowerSpeedLimit, _lateralSpeedLimit;
+    [SerializeField]
+    private bool _isJamp, _isFly;
 
     //[HideInInspector]
     //public bool IsJamp;
@@ -31,7 +34,7 @@ public class Player : MonoBehaviour
             _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
             Vector2 direction = (_currentMousePos - _startMousePos).normalized;
 
-            if ((_currentMousePos - _startMousePos).y>0.1f)
+            if ((_currentMousePos - _startMousePos).y > 0.1f)
             {
                 _isJamp = true;
             }
@@ -40,17 +43,21 @@ public class Player : MonoBehaviour
                 _isJamp = false;
             }
 
-            if (direction.y>0)
+            if (direction.y > 0)
             {
                 direction.y = 0;
             }
-            if (_isFly)
+            if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.1f)
             {
-                _rigidbodyMain.AddForce(direction * _forceFly);
-            }
-            else
-            {
-                _rigidbodyMain.AddForce(direction * _forceGround);
+                if (_isFly)
+                {
+                    _rigidbodyMain.AddForce(direction * _forceFly);
+                }
+                else
+                {
+                    _rigidbodyMain.AddForce(direction * _forceGround);
+                }
+
             }
         }
         else if (Input.GetMouseButtonUp(0))
@@ -58,13 +65,43 @@ public class Player : MonoBehaviour
             _isJamp = false;
         }
     }
+    private void FixedUpdate()
+    {
+        if (_rigidbodyMain.velocity.y < _lowerSpeedLimit)
+        {
+            Vector2 velocity = _rigidbodyMain.velocity;
+            velocity.y = _lowerSpeedLimit;
+            _rigidbodyMain.velocity = velocity;
+        }
+        if (_rigidbodyMain.velocity.y > _upperSpeedLimit)
+        {
+            Vector2 velocity = _rigidbodyMain.velocity;
+            velocity.y = _upperSpeedLimit;
+            _rigidbodyMain.velocity = velocity;
+        }
+        if (Mathf.Abs(_rigidbodyMain.velocity.x) > _lateralSpeedLimit)
+        {
+            int factor = _rigidbodyMain.velocity.x > 0 ? 1 : -1;
+            Vector2 velocity = _rigidbodyMain.velocity;
+            velocity.x = _lateralSpeedLimit * factor;
+            _rigidbodyMain.velocity = velocity;
+        }
+
+    }
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (_isJamp )
+        if (collision.tag== "Abyss")
         {
-            _rigidbodyMain.AddForce(Vector2.up*_jampForce);
+            LevelManager.IsGameOver=true;
         }
-        _isFly = false;
+        else
+        {
+            if (_isJamp)
+            {
+                _rigidbodyMain.AddForce(Vector2.up * _jampForce);
+            }
+            _isFly = false;
+        }
     }
     private void OnCollisionExit2D(Collision2D collision)
     {

@@ -20,6 +20,7 @@ public class SoftBody : MonoBehaviour
     void Awake()
     {
         CreateReferencePoints();
+        OffBlob();
     }
 
     void Update()
@@ -114,4 +115,18 @@ public class SoftBody : MonoBehaviour
         return transform.InverseTransformPoint(obj.position);
     }
 
+    public void OnBlob()
+    {
+        for (int i = 0; i < _blobs.Length; i++)
+        {
+            _blobs[i].enabled = true;
+        }
+    }
+    public void OffBlob()
+    {
+        for (int i = 0; i < _blobs.Length; i++)
+        {
+            _blobs[i].enabled = false;
+        }
+    }
 }

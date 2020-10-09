@@ -9,13 +9,6 @@ public class JumpBlocker : MonoBehaviour
     private void FixedUpdate()
     {
         transform.position = _target.transform.position;
+        transform.eulerAngles = Vector3.zero;
     }
-    //private void OnTriggerStay2D(Collider2D collision)
-    //{
-    //    _target.IsNotJamp = true;
-    //}
-    //private void OnTriggerExit2D(Collider2D collision)
-    //{
-    //    _target.IsNotJamp = false;
-    //}
 }

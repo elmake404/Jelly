@@ -15,15 +15,6 @@ public class AnchorPoint : MonoBehaviour
     [SerializeField]
     private float _sizeCollider;
 
-
-    private void Start()
-    {
-
-    }
-    void Update()
-    {
-        
-    }
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.blue;

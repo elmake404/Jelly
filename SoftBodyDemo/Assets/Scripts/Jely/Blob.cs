@@ -30,7 +30,6 @@ public class Blob : MonoBehaviour
     {
         for (int i = 0; i < _referencePoints.Count; i++)
         {
-            //_referencePoints[i].transform.SetParent(transform);
             AttachWithSpringJoint(_referencePoints[i], _rbMain, _springFrequency);
         }
     }
