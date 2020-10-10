@@ -18,7 +18,7 @@ public class CameraControl : MonoBehaviour
     {
         if (!LevelManager.IsGameOver)
         {
-            transform.position = Vector3.SmoothDamp(transform.position, _target.position - _offSet, ref velocity, 0.03f);
+            transform.position =  Vector3.SmoothDamp(transform.position, _target.position - _offSet, ref velocity, 0.07f);
         }
     }
     private void OnTriggerEnter2D(Collider2D collision)

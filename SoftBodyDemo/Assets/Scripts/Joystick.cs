@@ -27,7 +27,7 @@ public class Joystick : MonoBehaviour
         {
             _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
             Vector2 direction = (_currentMousePos - _startMousePos).normalized;
-            if ((_currentMousePos - _startMousePos).magnitude >= 0.1f)
+            if ((_currentMousePos - _startMousePos).magnitude >= 0.01f)
             {
                 _stickSprite.transform.localPosition = direction * (_currentMousePos - _startMousePos).magnitude*4;
             }

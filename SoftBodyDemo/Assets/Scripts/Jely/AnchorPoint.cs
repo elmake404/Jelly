@@ -8,7 +8,7 @@ public class AnchorPoint : MonoBehaviour
     [SerializeField]
     private Transform _compass, _compassPencil;
 
-    public bool IsCircle;
+    public bool IsGround, IsCircle;
     [SerializeField]
     private bool _isTop, _isBottom, _isRight, _isLeft;
 

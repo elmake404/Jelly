@@ -48,6 +48,10 @@ public class SoftBody : MonoBehaviour
             }
 
             referensPoint.transform.SetParent(parentReferens);
+            if (_anchorPoints[i].IsGround)
+            {
+                referensPoint.tag = "Ground";
+            }
 
             if (_anchorPoints[i].tag == "Angle" && _anchorPoints[i].gameObject.layer==9)
             {
