@@ -11,7 +11,6 @@ public class AnchorPoint : MonoBehaviour
     public bool IsGround, IsCircle;
     [SerializeField]
     private bool _isTop, _isBottom, _isRight, _isLeft;
-
     [SerializeField]
     private float _sizeCollider;
 
@@ -38,7 +37,6 @@ public class AnchorPoint : MonoBehaviour
         {
             return 180;
         }
-
     }
 
     public Vector2 GetPositionOnACircle(float Rotation)

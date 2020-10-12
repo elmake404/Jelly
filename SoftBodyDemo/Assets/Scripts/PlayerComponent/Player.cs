@@ -12,13 +12,12 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _jampForce;
     [SerializeField]
-    private float _upperSpeedLimit, _lowerSpeedLimit, _lateralSpeedLimit,_lateralFlySpeedLimit;
+    private float _lateralSpeedLimit, _lateralFlySpeedLimit, _sensitivityDirection;
     private float _speed;
-    [SerializeField]
-    private bool _isJamp/*, _isFly*/;
+    private bool _isJamp, _isCantMove;
 
-    //[HideInInspector]
-    public bool IsTouchingTheGround, IsNotRight, IsNotLeft;
+    [HideInInspector]
+    public bool IsTouchingTheGround, IsJumpRight, IsJumpLeft, IsNotRight, IsNotLeft;
     private void Start()
     {
         _cam = Camera.main;
@@ -35,7 +34,7 @@ public class Player : MonoBehaviour
         {
             _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
 
-            float direction = (_currentMousePos - _startMousePos).normalized.x /*> 0 ? 1 : -1*/;
+            float direction = GetDirection((_currentMousePos - _startMousePos).x);
 
             if (IsTouchingTheGround)
             {
@@ -46,24 +45,17 @@ public class Player : MonoBehaviour
                 _speed = Mathf.Lerp(_speed, direction * _lateralFlySpeedLimit, 0.3f);
             }
 
-            if ((_currentMousePos - _startMousePos).y > 0.1f)
-            {
-                _isJamp = true;
-            }
-            else
-            {
-                _isJamp = false;
-            }
+            _isJamp = true;
 
-            if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.01f)
+            if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.01f && !_isCantMove)
             {
-                if ((direction>0&& !IsNotRight)|| (direction < 0 && !IsNotLeft))
+                if (((direction > 0 && !IsNotRight) || (direction < 0 && !IsNotLeft)))
                 {
                     _rigidbodyMain.velocity = new Vector2(_speed, _rigidbodyMain.velocity.y);
                 }
                 else
                 {
-                    _rigidbodyMain.velocity = new Vector2(direction , _rigidbodyMain.velocity.y);
+                    _rigidbodyMain.velocity = new Vector2(direction, _rigidbodyMain.velocity.y);
                 }
             }
         }
@@ -80,6 +72,16 @@ public class Player : MonoBehaviour
         {
             _rigidbodyMain.AddForce(Vector2.up * _jampForce);
         }
+        if (!IsTouchingTheGround && _isJamp && IsJumpRight && _rigidbodyMain.velocity.y < 0.1f)
+        {
+            _rigidbodyMain.AddForce(new Vector2(-1, 1) * _jampForce * 10);
+            StartCoroutine(CantMove());
+        }
+        if (!IsTouchingTheGround && _isJamp && IsJumpLeft && _rigidbodyMain.velocity.y < 0.1f)
+        {
+            _rigidbodyMain.AddForce(new Vector2(1, 1) * _jampForce * 10);
+            StartCoroutine(CantMove());
+        }
     }
     private void OnTriggerStay2D(Collider2D collision)
     {
@@ -87,5 +89,25 @@ public class Player : MonoBehaviour
         {
             LevelManager.IsGameOver = true;
         }
+    }
+    private float GetDirection(float X)
+    {
+        X *= _sensitivityDirection;
+        if (X > 1)
+        {
+            X = 1;
+        }
+        else if (X < -1)
+        {
+            X = -1;
+        }
+        return X;
+    }
+    private IEnumerator CantMove()
+    {
+        _isCantMove = true;
+        yield return new WaitForSeconds(0.5f);
+        Debug.Log(0);
+        _isCantMove = false;
     }
 }
