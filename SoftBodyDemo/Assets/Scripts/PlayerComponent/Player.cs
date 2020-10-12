@@ -35,7 +35,8 @@ public class Player : MonoBehaviour
         {
             _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
 
-            float direction = (_currentMousePos - _startMousePos).normalized.x > 0 ? 1 : -1;
+            float direction = (_currentMousePos - _startMousePos).normalized.x /*> 0 ? 1 : -1*/;
+
             if (IsTouchingTheGround)
             {
                 _speed = Mathf.Lerp(_speed, direction * _lateralSpeedLimit, 0.3f);
@@ -54,7 +55,7 @@ public class Player : MonoBehaviour
                 _isJamp = false;
             }
 
-            if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.15f)
+            if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.01f)
             {
                 if ((direction>0&& !IsNotRight)|| (direction < 0 && !IsNotLeft))
                 {

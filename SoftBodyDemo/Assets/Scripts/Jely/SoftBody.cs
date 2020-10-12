@@ -23,11 +23,6 @@ public class SoftBody : MonoBehaviour
         OffBlob();
     }
 
-    void Update()
-    {
-
-    }
-
     private void CreateReferencePoints()
     {
         _positionPoint = _anchorPoints[0].transform.position;
@@ -118,7 +113,6 @@ public class SoftBody : MonoBehaviour
     {
         return transform.InverseTransformPoint(obj.position);
     }
-
     public void OnBlob()
     {
         for (int i = 0; i < _blobs.Length; i++)
