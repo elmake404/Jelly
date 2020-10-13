@@ -10,9 +10,9 @@ public class SideJump : MonoBehaviour
 
     [SerializeField]
     private bool IsRight, IsLeft;
-    private void FixedUpdate()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (_listCollision.Count > 0)
+        if (collision.gameObject.layer == 16)
         {
             if (IsLeft)
             {
@@ -23,7 +23,10 @@ public class SideJump : MonoBehaviour
                 _player.IsJumpRight = true;
             }
         }
-        else
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.layer == 16)
         {
             if (IsLeft)
             {
@@ -32,36 +35,6 @@ public class SideJump : MonoBehaviour
             if (IsRight)
             {
                 _player.IsJumpRight = false;
-            }
-        }
-
-    }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.layer == 8)
-        {
-            if (IsLeft)
-            {
-                _listCollision.Add(collision);
-            }
-            if (IsRight)
-            {
-                _listCollision.Add(collision);
-            }
-        }
-
-    }
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.gameObject.layer == 8)
-        {
-            if (IsLeft)
-            {
-                _listCollision.Remove(collision);
-            }
-            if (IsRight)
-            {
-                _listCollision.Remove(collision);
             }
         }
 

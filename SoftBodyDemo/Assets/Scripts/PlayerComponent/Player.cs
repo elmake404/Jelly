@@ -33,29 +33,31 @@ public class Player : MonoBehaviour
         else if (Input.GetMouseButton(0))
         {
             _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-
-            float direction = GetDirection((_currentMousePos - _startMousePos).x);
-
-            if (IsTouchingTheGround)
+            if (!_isCantMove)
             {
-                _speed = Mathf.Lerp(_speed, direction * _lateralSpeedLimit, 0.3f);
-            }
-            else
-            {
-                _speed = Mathf.Lerp(_speed, direction * _lateralFlySpeedLimit, 0.3f);
-            }
+                float direction = GetDirection((_currentMousePos - _startMousePos).x);
 
-            _isJamp = true;
-
-            if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.01f && !_isCantMove)
-            {
-                if (((direction > 0 && !IsNotRight) || (direction < 0 && !IsNotLeft)))
+                if (IsTouchingTheGround)
                 {
-                    _rigidbodyMain.velocity = new Vector2(_speed, _rigidbodyMain.velocity.y);
+                    _speed = Mathf.Lerp(_speed, direction * _lateralSpeedLimit, 0.3f);
                 }
                 else
                 {
-                    _rigidbodyMain.velocity = new Vector2(direction, _rigidbodyMain.velocity.y);
+                    _speed = Mathf.Lerp(_speed, direction * _lateralFlySpeedLimit, 0.3f);
+                }
+
+                _isJamp = true;
+
+                if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.01f)
+                {
+                    if (((direction > 0 && !IsNotRight) || (direction < 0 && !IsNotLeft)))
+                    {
+                        _rigidbodyMain.velocity = new Vector2(_speed, _rigidbodyMain.velocity.y);
+                    }
+                    else
+                    {
+                        _rigidbodyMain.velocity = new Vector2(direction * 4, _rigidbodyMain.velocity.y);
+                    }
                 }
             }
         }
@@ -74,13 +76,13 @@ public class Player : MonoBehaviour
         }
         if (!IsTouchingTheGround && _isJamp && IsJumpRight && _rigidbodyMain.velocity.y < 0.1f)
         {
-            _rigidbodyMain.AddForce(new Vector2(-1, 1) * _jampForce * 10);
             StartCoroutine(CantMove());
+            _rigidbodyMain.AddForce(new Vector2(-1f, 1.5f) * _jampForce * 7);
         }
         if (!IsTouchingTheGround && _isJamp && IsJumpLeft && _rigidbodyMain.velocity.y < 0.1f)
         {
-            _rigidbodyMain.AddForce(new Vector2(1, 1) * _jampForce * 10);
             StartCoroutine(CantMove());
+            _rigidbodyMain.AddForce(new Vector2(1f, 1.5f) * _jampForce * 7);
         }
     }
     private void OnTriggerStay2D(Collider2D collision)
@@ -107,7 +109,7 @@ public class Player : MonoBehaviour
     {
         _isCantMove = true;
         yield return new WaitForSeconds(0.5f);
-        Debug.Log(0);
+        _speed = _rigidbodyMain.velocity.x;
         _isCantMove = false;
     }
 }
