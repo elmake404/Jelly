@@ -6,24 +6,36 @@ public class CameraControl : MonoBehaviour
 {
     [SerializeField]
     private Transform _target;
-    private Vector3 _offSet, _CameraPos;
+    private Vector3 _offSet, _cameraPos;
+    [SerializeField]
+    private Vector3 _limitDown, _limitUp;
     private Vector3 velocity = Vector3.zero;
+    [SerializeField]
+    private bool _isMove = true;
 
     void Start()
     {
         _offSet = _target.position - transform.position;
-        _CameraPos = new Vector3(transform.position.x, _target.position.y- _offSet.y, transform.position.z);
+        _cameraPos = new Vector3(transform.position.x, _target.position.y- _offSet.y, transform.position.z);
+        _limitDown = transform.position;
     }
 
     void FixedUpdate()
     {
-        if (!LevelManager.IsGameOver)
+        if (!LevelManager.IsGameOver&&_isMove)
         {
-            if (_target.position.y> transform.position.y)
+            if (_target.position.y> transform.position.y+5)
             {
-                _CameraPos = new Vector3(transform.position.x, _target.position.y, transform.position.z);
+                _cameraPos = new Vector3(transform.position.x, _target.position.y-5, transform.position.z);
             }
-            transform.position =  Vector3.SmoothDamp(transform.position, _CameraPos, ref velocity, 0.07f);
+            else if (_target.position.y < transform.position.y - 10)
+            {
+                _cameraPos = new Vector3(transform.position.x, _target.position.y + 10, transform.position.z);
+            }
+
+            CorectionPositioncamera();
+
+            transform.position =  Vector3.SmoothDamp(transform.position, _cameraPos, ref velocity, 0.07f);
         }
     }
     private void OnTriggerEnter2D(Collider2D collision)
@@ -39,6 +51,21 @@ public class CameraControl : MonoBehaviour
         {
             collision.GetComponent<ActivationSoftBody>().OffBlob();
         }
-
+    }
+    private void CorectionPositioncamera()
+    {
+        if (_cameraPos.y > _limitUp.y)
+        {
+            _cameraPos.y = _limitUp.y;
+        }
+        if (_cameraPos.y < _limitDown.y)
+        {
+            _cameraPos.y = _limitDown.y;
+        }
+    }
+    [ContextMenu("UpperLimitEntry")]
+    private void UpperLimitEntry()
+    {
+        _limitUp = transform.position;
     }
 }

@@ -25,47 +25,51 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (!LevelManager.IsGameOver)
         {
-            _rigidbodyMain.constraints = RigidbodyConstraints2D.None;
-            _startMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-        }
-        else if (Input.GetMouseButton(0))
-        {
-            _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-            if (!_isCantMove)
+            if (Input.GetMouseButtonDown(0))
             {
-                float direction = GetDirection((_currentMousePos - _startMousePos).x);
-
-                if (IsTouchingTheGround)
+                _rigidbodyMain.constraints = RigidbodyConstraints2D.None;
+                _startMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
+            }
+            else if (Input.GetMouseButton(0))
+            {
+                _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
+                if (!_isCantMove)
                 {
-                    _speed = Mathf.Lerp(_speed, direction * _lateralSpeedLimit, 0.3f);
-                }
-                else
-                {
-                    _speed = Mathf.Lerp(_speed, direction * _lateralFlySpeedLimit, 0.3f);
-                }
+                    float direction = GetDirection((_currentMousePos - _startMousePos).x);
 
-                _isJamp = true;
-
-                if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.01f)
-                {
-                    if (((direction > 0 && !IsNotRight) || (direction < 0 && !IsNotLeft)))
+                    if (IsTouchingTheGround)
                     {
-                        _rigidbodyMain.velocity = new Vector2(_speed, _rigidbodyMain.velocity.y);
+                        _speed = Mathf.Lerp(_speed, direction * _lateralSpeedLimit, 0.3f);
                     }
                     else
                     {
-                        _rigidbodyMain.velocity = new Vector2(direction * 4, _rigidbodyMain.velocity.y);
+                        _speed = Mathf.Lerp(_speed, direction * _lateralFlySpeedLimit, 0.3f);
+                    }
+
+                    _isJamp = true;
+
+                    if (Mathf.Abs((_currentMousePos - _startMousePos).x) > 0.01f)
+                    {
+                        if (((direction > 0 && !IsNotRight) || (direction < 0 && !IsNotLeft)))
+                        {
+                            _rigidbodyMain.velocity = new Vector2(_speed, _rigidbodyMain.velocity.y);
+                        }
+                        else
+                        {
+                            _rigidbodyMain.velocity = new Vector2(direction * 4, _rigidbodyMain.velocity.y);
+                        }
                     }
                 }
             }
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            _rigidbodyMain.constraints = RigidbodyConstraints2D.FreezeRotation;
+            else if (Input.GetMouseButtonUp(0))
+            {
+                _rigidbodyMain.constraints = RigidbodyConstraints2D.FreezeRotation;
 
-            _isJamp = false;
+                _isJamp = false;
+            }
+
         }
     }
     private void FixedUpdate()
