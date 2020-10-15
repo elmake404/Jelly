@@ -21,7 +21,8 @@ public class Blob : MonoBehaviour
     private float _mappingDetail = 10, _springDampingRatio = 0, _springFrequency = 2;
     private int[] _triangles;
     private float[,] _weights;
-    private bool _isStart=false;
+    [SerializeField]
+    private bool _isStart = false;
     private void Update()
     {
         UpdateVertexPositions();

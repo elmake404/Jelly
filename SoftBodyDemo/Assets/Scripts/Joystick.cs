@@ -16,27 +16,29 @@ public class Joystick : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (!LevelManager.IsGameOver && !LevelManager.IsWin)
         {
-            _startMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-            OnStick();
-            _mainSprite.transform.position
-                = _cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 3));
-        }
-        else if (Input.GetMouseButton(0))
-        {
-            _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
-            Vector2 direction = (_currentMousePos - _startMousePos).normalized;
-            if ((_currentMousePos - _startMousePos).magnitude >= 0.01f)
+            if (Input.GetMouseButtonDown(0))
             {
-                _stickSprite.transform.localPosition = direction * (_currentMousePos - _startMousePos).magnitude*4;
+                _startMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
+                OnStick();
+                _mainSprite.transform.position
+                    = _cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 3));
+            }
+            else if (Input.GetMouseButton(0))
+            {
+                _currentMousePos = _cam.ScreenToViewportPoint(Input.mousePosition);
+                Vector2 direction = (_currentMousePos - _startMousePos).normalized;
+                if ((_currentMousePos - _startMousePos).magnitude >= 0.01f)
+                {
+                    _stickSprite.transform.localPosition = direction * (_currentMousePos - _startMousePos).magnitude * 4;
+                }
+            }
+            else if (Input.GetMouseButtonUp(0))
+            {
+                OffStick();
             }
         }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            OffStick();
-        }
-
     }
     private void OnStick()
     {

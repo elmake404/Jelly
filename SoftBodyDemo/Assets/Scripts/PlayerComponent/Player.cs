@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    private Vector2 _startMousePos, _currentMousePos;
+    private Vector2 _startMousePos, _currentMousePos, _startPosPLayer;
     [SerializeField]
     private Rigidbody2D _rigidbodyMain;
     private Camera _cam;
@@ -14,18 +14,22 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _lateralSpeedLimit, _lateralFlySpeedLimit, _sensitivityDirection;
     private float _speed;
+    [SerializeField]
     private bool _isJamp, _isCantMove;
 
-    [HideInInspector]
+    //[HideInInspector]
     public bool IsTouchingTheGround, IsJumpRight, IsJumpLeft, IsNotRight, IsNotLeft;
+    private void Awake()
+    {
+        _startPosPLayer = transform.position;
+    }
     private void Start()
     {
         _cam = Camera.main;
     }
-
     private void Update()
     {
-        if (!LevelManager.IsGameOver)
+        if (!LevelManager.IsGameOver && !LevelManager.IsWin)
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -69,7 +73,6 @@ public class Player : MonoBehaviour
 
                 _isJamp = false;
             }
-
         }
     }
     private void FixedUpdate()
@@ -94,6 +97,14 @@ public class Player : MonoBehaviour
         if (collision.tag == "Abyss")
         {
             LevelManager.IsGameOver = true;
+            gameObject.SetActive(false);
+        }
+        if (collision.tag == "Finish")
+        {
+            LevelManager.IsWin = true;
+            _rigidbodyMain.velocity = Vector2.zero;
+            _rigidbodyMain.isKinematic=true;
+            StartCoroutine(Win(collision.transform));
         }
     }
     private float GetDirection(float X)
@@ -111,9 +122,24 @@ public class Player : MonoBehaviour
     }
     private IEnumerator CantMove()
     {
+        _rigidbodyMain.velocity = Vector2.zero;
         _isCantMove = true;
         yield return new WaitForSeconds(0.5f);
         _speed = _rigidbodyMain.velocity.x;
         _isCantMove = false;
+    }
+    private IEnumerator Win(Transform target)
+    {
+        transform.position = Vector3.MoveTowards(transform.position, target.position, 0.05f);
+        transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, 0.01f);
+        yield return new WaitForSeconds(0.02f);
+    }
+    public void GoToStartPos()
+    {
+        _rigidbodyMain.constraints = RigidbodyConstraints2D.FreezeRotation;
+        _isJamp = false;
+        _isCantMove = false;
+
+        transform.position = _startPosPLayer;
     }
 }
