@@ -127,4 +127,13 @@ public class SoftBody : MonoBehaviour
             _blobs[i].enabled = false;
         }
     }
+    [ContextMenu("RecordsBlobs")]
+    private void RecordsBlobs()
+    {
+        _blobs = new Blob[transform.childCount];
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            _blobs[i] = transform.GetChild(i).GetComponent<Blob>();
+        }
+    }
 }
