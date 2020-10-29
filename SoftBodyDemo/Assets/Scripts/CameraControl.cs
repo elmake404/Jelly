@@ -16,7 +16,6 @@ public class CameraControl : MonoBehaviour
     private float _topWindow = 5, _bottomWindow = 10;
     private void Awake()
     {
-        _limitDown = transform.position;
         if (_isMoveStatUp)
         {
             transform.position = _limitUp;
@@ -71,9 +70,14 @@ public class CameraControl : MonoBehaviour
             _cameraPos.y = _limitDown.y;
         }
     }
-    [ContextMenu("UpperLimitEntry")]
-    private void UpperLimitEntry()
+    [ContextMenu("UpperLimitUpEntry")]
+    private void UpperLimitUpEntry()
     {
         _limitUp = transform.position;
+    }
+    [ContextMenu("UpperLimitDownEntry")]
+    private void UpperLimitDownEntry()
+    {
+        _limitDown = transform.position;
     }
 }
