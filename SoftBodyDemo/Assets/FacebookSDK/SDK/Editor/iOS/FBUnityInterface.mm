@@ -21,16 +21,17 @@
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <FBSDKShareKit/FBSDKShareKit.h>
+#import <FBSDKGamingServicesKit/FBSDKGamingServicesKit.h>
 #import <Foundation/NSJSONSerialization.h>
 
 #include "FBUnitySDKDelegate.h"
 #include "FBUnityUtility.h"
 #include "FBSDK+Internal.h"
 
-static FBUnityInterface *_instance = [FBUnityInterface sharedInstance];
-
 @interface FBUnityInterface()
+
 @property (nonatomic, copy) NSString *openURLString;
+
 @end
 
 @implementation FBUnityInterface
@@ -39,28 +40,20 @@ static FBUnityInterface *_instance = [FBUnityInterface sharedInstance];
 
 + (FBUnityInterface *)sharedInstance
 {
-  return _instance;
+  static dispatch_once_t pred;
+  static FBUnityInterface *shared = nil;
+
+  dispatch_once(&pred, ^{
+    shared = [[FBUnityInterface alloc] init];
+    shared.shareDialogMode = ShareDialogMode::AUTOMATIC;
+  });
+
+  return shared;
 }
 
-+ (void)initialize {
-  if(!_instance) {
-    _instance = [[FBUnityInterface alloc] init];
-  }
-}
-
-- (id)init
++ (void)load
 {
-  if(_instance != nil) {
-    return _instance;
-  }
-
-  if ((self = [super init])) {
-    _instance = self;
-    self.shareDialogMode = ShareDialogMode::AUTOMATIC;
-
-    UnityRegisterAppDelegateListener(self);
-  }
-  return self;
+  UnityRegisterAppDelegateListener([FBUnityInterface sharedInstance]);
 }
 
 #pragma mark - App (Delegate) Lifecycle
@@ -76,7 +69,7 @@ static FBUnityInterface *_instance = [FBUnityInterface sharedInstance];
 
 - (void)didBecomeActive:(NSNotification *)notification
 {
-  [FBSDKAppEvents activateApp];
+
 }
 
 - (void)onOpenURL:(NSNotification *)notification
@@ -151,15 +144,9 @@ isPublishPermLogin:(BOOL)isPublishPermLogin
   };
 
   FBSDKLoginManager *login = [[FBSDKLoginManager alloc] init];
-  if (isPublishPermLogin) {
-    [login logInWithPublishPermissions:permissions
-                    fromViewController:nil
-                               handler:loginHandler];
-  } else {
-    [login logInWithReadPermissions:permissions
-                 fromViewController:nil
-                            handler:loginHandler];
-  }
+  [login logInWithPermissions:permissions
+           fromViewController:nil
+                      handler:loginHandler];
 }
 
 - (void)logOut
@@ -208,20 +195,6 @@ isPublishPermLogin:(BOOL)isPublishPermLogin
     [FBUnityUtility sendErrorToUnity:FBUnityMessageName_OnAppRequestsComplete errorMessage:@"Failed to show request dialog" requestId:requestId];
   }
 }
-
-- (void)appInviteWithRequestId:(int)requestId
-                    appLinkUrl:(const char *)appLinkUrl
-               previewImageUrl:(const char *)previewImageUrl
-{
-  FBSDKAppInviteContent *content = [[FBSDKAppInviteContent alloc] init];
-  content.appLinkURL = [NSURL URLWithString:[FBUnityUtility stringFromCString:appLinkUrl]];
-  content.appInvitePreviewImageURL = [NSURL URLWithString:[FBUnityUtility stringFromCString:previewImageUrl]];
-  FBUnitySDKDelegate *delegate = [FBUnitySDKDelegate instanceWithRequestID:requestId];
-  [FBSDKAppInviteDialog showFromViewController:nil
-                                   withContent:content
-                                      delegate:delegate];
-}
-
 
 - (void)shareLinkWithRequestId:(int)requestId
                     contentURL:(const char *)contentURL
@@ -272,7 +245,7 @@ isPublishPermLogin:(BOOL)isPublishPermLogin
     [feedParameters setObject:sourceStr forKey:@"source"];
   }
 
-  linkContent.feedParameters = feedParameters;
+  [linkContent addParameters:feedParameters bridgeOptions:FBSDKShareBridgeOptionsDefault];
   [self shareContentWithRequestId:requestId
                      shareContent:linkContent
                        dialogMode:FBSDKShareDialogModeFeedWeb];
@@ -352,6 +325,13 @@ isPublishPermLogin:(BOOL)isPublishPermLogin
 
 extern "C" {
 
+  void IOSFBSendViewHierarchy(const char *_tree )
+  {
+    Class FBUnityUtility = NSClassFromString(@"FBSDKCodelessIndexer");
+    [FBUnityUtility performSelector:NSSelectorFromString(@"uploadIndexing:")
+                           withObject:[NSString stringWithUTF8String:_tree]];
+  }
+
   void IOSFBInit(const char *_appId, bool _frictionlessRequests, const char *_urlSuffix, const char *_userAgentSuffix)
   {
     // Set the user agent before calling init to ensure that calls made during
@@ -361,6 +341,8 @@ extern "C" {
     [[FBUnityInterface sharedInstance] configureAppId:_appId
                                  frictionlessRequests:_frictionlessRequests
                                             urlSuffix:_urlSuffix];
+    [FBSDKAppEvents setIsUnityInit:true];
+    [FBSDKAppEvents sendEventBindingsToUnity];
   }
 
   void IOSFBLogInWithReadPermissions(int requestId,
@@ -378,6 +360,11 @@ extern "C" {
   void IOSFBLogOut()
   {
     [[FBUnityInterface sharedInstance] logOut];
+  }
+
+  void IOSFBSetPushNotificationsDeviceTokenString(const char *token)
+  {
+    [FBSDKAppEvents setPushNotificationsDeviceTokenString:[FBUnityUtility stringFromCString:token]];
   }
 
   void IOSFBSetShareDialogMode(int mode)
@@ -408,15 +395,6 @@ extern "C" {
                                                        filters: filters
                                                           data: data
                                                          title: title];
-  }
-
-  void IOSFBAppInvite(int requestId,
-                    const char *appLinkUrl,
-                    const char *previewImageUrl)
-  {
-    [[FBUnityInterface sharedInstance] appInviteWithRequestId:requestId
-                                                   appLinkUrl:appLinkUrl
-                                              previewImageUrl:previewImageUrl];
   }
 
   void IOSFBGetAppLink(int requestId)
@@ -460,7 +438,7 @@ extern "C" {
                                                   mediaSource:mediaSource];
   }
 
-  void IOSFBSettingsActivateApp(const char *appId)
+  void IOSFBAppEventsActivateApp()
   {
     [FBSDKAppEvents activateApp];
   }
@@ -490,12 +468,141 @@ extern "C" {
     [FBSDKSettings setLimitEventAndDataUsage:limitEventUsage];
   }
 
+  void IOSFBAutoLogAppEventsEnabled(BOOL autoLogAppEventsEnabledID)
+  {
+    [FBSDKSettings setAutoLogAppEventsEnabled:autoLogAppEventsEnabledID];
+  }
+
+  void IOSFBAdvertiserIDCollectionEnabled(BOOL advertiserIDCollectionEnabledID)
+  {
+    [FBSDKSettings setAdvertiserIDCollectionEnabled:advertiserIDCollectionEnabledID];
+  }
+
+  BOOL IOSFBAdvertiserTrackingEnabled(BOOL advertiserTrackingEnabled)
+  {
+    return [FBSDKSettings setAdvertiserTrackingEnabled:advertiserTrackingEnabled];
+  }
+
   char* IOSFBSdkVersion()
   {
     const char* string = [[FBSDKSettings sdkVersion] UTF8String];
     char* res = (char*)malloc(strlen(string) + 1);
     strcpy(res, string);
     return res;
+  }
+
+  void IOSFBSetUserID(const char *userID)
+  {
+    [FBSDKAppEvents setUserID:[FBUnityUtility stringFromCString:userID]];
+  }
+
+  void IOSFBOpenGamingServicesFriendFinder(int requestId)
+  {
+    [FBSDKFriendFinderDialog
+       launchFriendFinderDialogWithCompletionHandler:^(BOOL success, NSError * _Nullable error) {
+        if (!success || error) {
+            [FBUnityUtility sendErrorToUnity:FBUnityMessageName_OnFriendFinderComplete error:error requestId:requestId];
+        } else {
+           [FBUnityUtility sendMessageToUnity:FBUnityMessageName_OnFriendFinderComplete
+                                    userData:NULL
+                                    requestId:requestId];
+        }
+      }];
+  }
+
+  void IOSFBSetDataProcessingOptions(
+    const char** options,
+    int numOptions,
+    int country,
+    int state) {
+    NSMutableArray<NSString*>* array = [[NSMutableArray alloc] init];
+    for (int i = 0; i < numOptions; i++) {
+      NSString* option = [FBUnityUtility stringFromCString:options[i]];
+      if (option) {
+        [array addObject:option];
+      }
+    }
+    [FBSDKSettings setDataProcessingOptions:array country:country state:state];
+  }
+
+  void IOSFBUploadImageToMediaLibrary(int requestId,
+                                      const char *caption,
+                                      const char *imageUri,
+                                      bool shouldLaunchMediaDialog)
+  {
+    NSString *captionString = [FBUnityUtility stringFromCString:caption];
+    NSString *imageUriString = [FBUnityUtility stringFromCString:imageUri];
+    UIImage *image = [UIImage imageWithContentsOfFile:imageUriString];
+
+    FBSDKGamingImageUploaderConfiguration *config =
+    [[FBSDKGamingImageUploaderConfiguration alloc]
+      initWithImage:image
+      caption:captionString
+      shouldLaunchMediaDialog:shouldLaunchMediaDialog ? YES: NO];
+
+    [FBSDKGamingImageUploader
+      uploadImageWithConfiguration:config
+      andResultCompletionHandler:^(BOOL success, id result, NSError * _Nullable error) {
+        if (!success || error) {
+          [FBUnityUtility sendErrorToUnity:FBUnityMessageName_OnUploadImageToMediaLibraryComplete
+            error:error
+            requestId:requestId];
+        } else {
+          [FBUnityUtility sendMessageToUnity:FBUnityMessageName_OnUploadImageToMediaLibraryComplete
+            userData:@{@"id":result[@"id"]}
+            requestId:requestId];
+        }
+    }];
+
+  }
+
+  void IOSFBUploadVideoToMediaLibrary(int requestId,
+                                      const char *caption,
+                                      const char *videoUri)
+  {
+    NSString *captionString = [FBUnityUtility stringFromCString:caption];
+    NSString *videoUriString = [FBUnityUtility stringFromCString:videoUri];
+    NSURL *videoURL = [NSURL fileURLWithPath:videoUriString];
+
+    FBSDKGamingVideoUploaderConfiguration *config =
+    [[FBSDKGamingVideoUploaderConfiguration alloc]
+      initWithVideoURL:videoURL
+      caption:captionString];
+
+    [FBSDKGamingVideoUploader
+      uploadVideoWithConfiguration:config
+      andResultCompletionHandler:^(BOOL success, id result, NSError * _Nullable error) {
+        if (!success || error) {
+          [FBUnityUtility sendErrorToUnity:FBUnityMessageName_OnUploadVideoToMediaLibraryComplete
+            error:error
+            requestId:requestId];
+        } else {
+          [FBUnityUtility sendMessageToUnity:FBUnityMessageName_OnUploadVideoToMediaLibraryComplete
+            userData:@{@"id":result[@"id"]}
+            requestId:requestId];
+        }
+    }];
+
+  }
+
+  char* IOSFBGetUserID()
+  {
+    NSString *userID = [FBSDKAppEvents userID];
+    if (!userID) {
+      return NULL;
+    }
+    const char* string = [userID UTF8String];
+    char* res = (char*)malloc(strlen(string) + 1);
+    strcpy(res, string);
+    return res;
+  }
+
+  void IOSFBUpdateUserProperties(int numParams,
+                                 const char **paramKeys,
+                                 const char **paramVals)
+  {
+    NSDictionary *params =  [FBUnityUtility dictionaryFromKeys:paramKeys values:paramVals length:numParams];
+    [FBSDKAppEvents updateUserProperties:params handler:NULL];
   }
 
   void IOSFBFetchDeferredAppLink(int requestId)
