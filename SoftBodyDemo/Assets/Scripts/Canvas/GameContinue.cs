@@ -9,7 +9,7 @@ public class GameContinue : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            LevelManager.IsWin = false;
+            LevelManager.IsWin = false; 
             if (PlayerPrefs.GetInt("Scenes") < SceneManager.sceneCountInBuildSettings)
             {
                 SceneManager.LoadScene(PlayerPrefs.GetInt("Scenes"));

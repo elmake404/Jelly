@@ -26,6 +26,7 @@ public class CanvasManager : MonoBehaviour
     {
         if (LevelManager.IsWin && !_winUI.activeSelf)
         {
+            FacebookManager.Instance.LevelWin(PlayerPrefs.GetInt("Level"));
             _winUI.SetActive(true);
             PlayerPrefs.SetInt("Scenes", PlayerPrefs.GetInt("Scenes")+1);
             PlayerPrefs.SetInt("Level", PlayerPrefs.GetInt("Level") +1);

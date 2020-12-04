@@ -26,6 +26,7 @@ public class Player : MonoBehaviour
     private void Start()
     {
         _cam = Camera.main;
+        FacebookManager.Instance.LevelStart(PlayerPrefs.GetInt("Level"));
     }
     private void Update()
     {
@@ -99,12 +100,12 @@ public class Player : MonoBehaviour
             LevelManager.IsGameOver = true;
             gameObject.SetActive(false);
         }
-        if (collision.tag == "Finish")
+        if (collision.tag == "Finish"&& !_rigidbodyMain.isKinematic)
         {
             LevelManager.IsWin = true;
             _rigidbodyMain.velocity = Vector2.zero;
             _rigidbodyMain.isKinematic=true;
-            StartCoroutine(Win(collision.transform));
+            StartCoroutine(Win(collision.gameObject.transform.position));
         }
     }
     private float GetDirection(float X)
@@ -128,11 +129,14 @@ public class Player : MonoBehaviour
         _speed = _rigidbodyMain.velocity.x;
         _isCantMove = false;
     }
-    private IEnumerator Win(Transform target)
+    private IEnumerator Win(Vector2 target)
     {
-        transform.position = Vector3.MoveTowards(transform.position, target.position, 0.05f);
-        transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, 0.01f);
-        yield return new WaitForSeconds(0.02f);
+        while(true)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, target, 0.05f);
+            transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, 0.01f);
+            yield return new WaitForSeconds(0.02f);
+        }
     }
     public void GoToStartPos()
     {

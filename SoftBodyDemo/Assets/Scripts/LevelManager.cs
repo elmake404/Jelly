@@ -35,6 +35,7 @@ public class LevelManager : MonoBehaviour
     }
     private IEnumerator GoToStartPosPlayer()
     {
+        FacebookManager.Instance.LevelFail(PlayerPrefs.GetInt("Level"));
         yield return new WaitForSeconds(0.5f);
         _player.GoToStartPos();
         _player.gameObject.SetActive(true);

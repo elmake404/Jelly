@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class StartGame : MonoBehaviour
 {
+    private void Start()
+    {
+        FacebookManager.Instance.GameStart();
+    }
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
